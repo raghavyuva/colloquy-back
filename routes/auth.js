@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 const _protected = require("../middleware/protected");
 const Posts = require("../models/post");
+const user = require("../models/user");
 {/*const storage = multer.diskStorage({
     destination: ((req, res, cb) => {
         cb(null, './profilepic');
@@ -47,6 +48,11 @@ module.exports = (app) => {
                 //   userphoto: req.file.path
               })
               User.save().then((data) => {
+                const token = jwt.sign(
+                  { email: data.email, id: data._id },
+                  config.jwt_token,
+                  { expiresIn: "48d" }
+                )
                 transporter.sendMail({
                   to: data.email,
                   from: "raghavyuva@gmail.com",
@@ -315,7 +321,11 @@ a.bulletproof-button {
 </body></html> 
                                     `
                 })
-                res.send(data);
+                return res.status(200).send({
+                  message: "signed up successfully",
+                  user: data,
+                  token: token
+                })
                 console.log(data);
               }).catch((error) => {
                 return res.status(420).send({
@@ -632,7 +642,8 @@ margin-right: 0 !important;
           })
           return res.status(200).send({
             message: "Auth successfull",
-            token: token
+            token: token,
+            user: user[0]
           })
         }
         return res.status(500).send({
@@ -710,10 +721,11 @@ margin-right: 0 !important;
     })
   })
 
+
   app.get('/user/:userId', _protected, (req, res) => {
     Userauth.findOne({ _id: req.params.userId }).select("-password")
       .then((user) => {
-        Posts.find({ postedBy: req.params.userId }).populate("postedBy", "_id username").exec((err, userposts) => {
+        Posts.find({ postedBy: req.params.userId }).populate("postedBy", "_id username").populate("comments", "likes").sort("-createdAt").exec((err, userposts) => {
           if (err) {
             return res.status(500).send({
               message: "error retreiving posts by this user" || err
@@ -771,4 +783,128 @@ margin-right: 0 !important;
     })
   })
 
+  app.put('/user/update', _protected, (req, res) => {
+    if (!req.body) {
+      res.status(500).send({
+        message: "fields cannot be empty fill up your problem to update your ticket"
+      })
+    } else {
+      Userauth.findByIdAndUpdate(req.user._id, {
+        username: req.body.username,
+        tagline: req.body.tagline,
+        userphoto: req.body.userphoto
+      }, { new: true })
+        .then(data => {
+          if (!data) {
+            return res.status(404).send({
+              message: "user not found with id " + req.user._id
+            });
+          }
+          res.send(data);
+          console.log(data)
+        }).catch(err => {
+          if (err.kind === 'ObjectId') {
+            return res.status(404).send({
+              message: "user not found with id " + req.user._id
+            });
+          }
+          return res.status(500).send({
+            message: "Something wrong updating user with id " + req.user._id
+          });
+        });
+    }
+  })
+
+  app.get('/allusers', _protected, (req, res) => {
+    Userauth.find().then((data) => {
+      res.send(data);
+      console.log(data);
+    }).catch((err) => {
+      return res.status(500).send({
+        message: err.message || "Something wrong while recieving the postss."
+      })
+    })
+  })
+
+  app.get('/followinglist', _protected, (req, res) => {
+    Userauth.find({ _id: req.user._id }).exec().then(data => {
+      data.map((list) => {
+        if (list.following != [null]) {
+          data.map((result => {
+            Userauth.find({ _id: result.following }).exec().then((following) => {
+              console.log(data)
+              res.send(following);
+            }).catch((err) => {
+              return res.status(500).send({
+                errM: 'something went wrong while looking for the following list'
+              })
+            })
+          })
+          )
+        }
+        else {
+          return res.status(500).send({
+            message: "you are not following anyone"
+          })
+        }
+      })
+    }).catch((err => {
+      return res.status(500).send({
+        errM: 'something went wrong while looking for the following list'
+      })
+    }))
+  })
+
+  app.get('/followerslist', _protected, (req, res) => {
+    Userauth.find({ _id: req.user._id }).exec().then(data => {
+      data.map((list) => {
+        if (list.followers != [null]) {
+          data.map((result => {
+            Userauth.find({ _id: result.followers }).exec().then((followers) => {
+              console.log(followers);
+              res.send(followers);
+            }).catch((err) => {
+              return res.status(500).send({
+                errM: 'something went wrong while looking for the followers list'
+              })
+            })
+          })
+          )
+        }
+        else {
+          return res.status(500).send({
+            message: "you dont have  any followers "
+          })
+        }
+      })
+    }).catch((err => {
+      return res.status(500).send({
+        errM: 'something went wrong while looking for the followers list'
+      })
+    }))
+  })
+
+  app.put('/notifytoken',_protected, (req, res) => {
+    Userauth.findByIdAndUpdate(req.user._id, {
+      notifytoken: req.body.notifytoken
+    }, { new: true }).then(data => {
+      if (!data) {
+        return res.status(404).send({
+          message: "user not found with id " + req.user._id
+        });
+      }
+      res.send(data); 
+      console.log(data);
+    }).catch((err) => {
+      if (err.kind === 'ObjectId') {
+        return res.status(404).send({
+          message: "user not found with id " + req.user._id
+        });
+      }
+      return res.status(500).send({
+        message: "Something wrong updating usertoken with id " + req.user._id
+      });
+    })
+  })
 };
+

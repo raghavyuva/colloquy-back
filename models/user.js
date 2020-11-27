@@ -11,20 +11,17 @@ const UserdataSchema = mongoose.Schema({
         required: true,
         unique: true,
     },
-    /*  userphoto: {
-           type: String,
-           required: true
-       },
-       */
+    userphoto: {
+        type: String,
+        // required: true
+    },
     password: {
         type: String,
         required: true,
     },
-    age: {
-        type: Number,
-        min: 18,
-        max: 60,
-        required: true
+    usn: {
+        type: String,
+        unique: true,
     },
     resetToken: String,
     expireToken: Date,
@@ -35,9 +32,10 @@ const UserdataSchema = mongoose.Schema({
     following: [{
         type: ObjectId,
         ref: "Userauth"
-    }]
+    }],
+    tagline: String,
+    notifytoken: String,
 }, {
     timestamps: true
 })
-
 module.exports = mongoose.model('Userauth', UserdataSchema);

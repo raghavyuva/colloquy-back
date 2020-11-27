@@ -1,13 +1,16 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema.Types
 
-const PostSchema = mongoose.Schema({
+const EventSchema = mongoose.Schema({
     postedBy: {
         type: ObjectId,
         ref: 'Userauth'
     },
     caption: {
         type: String,
+    },
+    Title: {
+        type: String
     },
     photo: {
         type: String,
@@ -29,4 +32,4 @@ const PostSchema = mongoose.Schema({
     timestamps: true
 })
 
-module.exports = mongoose.model('Posts', PostSchema);
+module.exports = mongoose.model('Events', EventSchema);

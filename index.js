@@ -19,6 +19,8 @@ mongoose.Promise = global.Promise;
 
 require('./routes/auth')(app);
 require('./routes/post_route')(app);
+require('./routes/poll_route')(app);
+require('./routes/report_routes')(app);
 mongoose.connect(config.url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -32,8 +34,6 @@ mongoose.connect(config.url, {
 app.get('/', (req, res) => {
     res.json({ "message": "Welcome" });
 });
-
-
 app.listen(PORT, () => {
     console.log("Server is listening on port", PORT);
 });
