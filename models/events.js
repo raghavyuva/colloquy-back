@@ -25,9 +25,13 @@ const EventSchema = mongoose.Schema({
         ref: 'Userauth'
     }],
     comments: [{
-        text: String,
+        text: String, 
         postedBy: { type: ObjectId, ref: 'Userauth' }
-    }]
+    }],
+    EventDate:{
+        type:String,
+        Date:new Date()
+    }
 }, {
     timestamps: true
 })

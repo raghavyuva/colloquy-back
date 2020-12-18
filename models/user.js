@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Schema.Types
 const UserdataSchema = mongoose.Schema({
-    //  _id: mongoose.Schema.Types.ObjectId,
     username: {
         type: String,
         required: true,
@@ -35,6 +34,10 @@ const UserdataSchema = mongoose.Schema({
     }],
     tagline: String,
     notifytoken: String,
+    verified:{
+        type:Boolean,
+        default:false
+    }
 }, {
     timestamps: true
 })

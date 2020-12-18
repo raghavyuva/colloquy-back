@@ -1,6 +1,7 @@
 const multer = require('multer');
 const Posts = require('../models/post');
 const _protected = require('../middleware/protected');
+const Notify = require('../models/Notify');
 const storage = multer.diskStorage({
     destination: ((req, res, cb) => {
         cb(null, './uploads');
@@ -33,9 +34,9 @@ module.exports = (app) => {
             });
     });
     app.get('/post', _protected, (req, res) => {
-        Posts.find().populate("postedBy", "_id username userphoto notifytoken").populate("comments.postedBy","_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {
+        Posts.find().populate("postedBy", "_id username userphoto notifytoken").populate("comments.postedBy", "_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {
             res.send(data);
-            console.log(data); 
+            console.log(data);
         }).catch((err) => {
             return res.status(500).send({
                 message: err.message || "Something wrong while recieving the postss."
@@ -98,7 +99,7 @@ module.exports = (app) => {
             $push: { likes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
             console.log(pushed);
-            res.status(200).send({   
+            res.status(200).send({
                 message: "liked the Post"
             })
         }).catch((errb) => {
@@ -132,7 +133,7 @@ module.exports = (app) => {
             $push: { comments: comment }
         }, {
             new: true
-        }).populate("comments.postedBy"," username userphoto text").populate("text")
+        }).populate("comments.postedBy", " username userphoto text").populate("text")
             .exec((err, result) => {
                 if (err) {
                     return res.json({ error: err });
@@ -183,7 +184,7 @@ module.exports = (app) => {
             $push: { votes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
             console.log(pushed);
-            res.status(200).send({   
+            res.status(200).send({
                 message: "voted the Post"
             })
         }).catch((errb) => {
@@ -192,6 +193,9 @@ module.exports = (app) => {
             })
         })
     })
+
+
+
+
 }
 
- 

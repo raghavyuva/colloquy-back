@@ -1,5 +1,5 @@
 const Userauth = require("../models/user");
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const multer = require("multer");
 const jwt = require('jsonwebtoken');
 const config = require('../config');
@@ -326,7 +326,6 @@ a.bulletproof-button {
                   user: data,
                   token: token
                 })
-                console.log(data);
               }).catch((error) => {
                 return res.status(420).send({
                   message: error
@@ -337,9 +336,6 @@ a.bulletproof-button {
         }
       })
   });
-
-
-
   app.delete('/:userId', (req, res) => {
     Userauth.remove({ _id: req.params.userId }).exec().then((data) => {
       res.status(200).send({
@@ -884,7 +880,7 @@ margin-right: 0 !important;
     }))
   })
 
-  app.put('/notifytoken',_protected, (req, res) => {
+  app.put('/notifytoken', _protected, (req, res) => {
     Userauth.findByIdAndUpdate(req.user._id, {
       notifytoken: req.body.notifytoken
     }, { new: true }).then(data => {
@@ -893,7 +889,7 @@ margin-right: 0 !important;
           message: "user not found with id " + req.user._id
         });
       }
-      res.send(data); 
+      res.send(data);
       console.log(data);
     }).catch((err) => {
       if (err.kind === 'ObjectId') {
@@ -906,5 +902,37 @@ margin-right: 0 !important;
       });
     })
   })
+  app.get('/users/searchbyusername/:searchParam', _protected, (req, res) => {
+    Userauth.find({ username: req.params.searchParam }).exec().then(data => {
+        res.send(data);
+        console.log(data)
+    }).catch(erre => {
+        return res.status(404).send({
+            err: erre
+        })
+    })
+})
+
+app.get('/users/searchbyemail/:searchParam', _protected, (req, res) => {
+  Userauth.find({ email: req.params.searchParam.toLowerCase() }).exec().then(data => {
+      res.send(data);
+      console.log(data)
+  }).catch(erre => {
+      return res.status(404).send({
+          err: erre
+      })
+  })
+})
+
+app.get('/users/searchbyusn/:searchParam', _protected, (req, res) => {
+  Userauth.find({ usn: req.params.searchParam.toLowerCase() }).exec().then(data => {
+      res.send(data);
+      console.log(data)
+  }).catch(erre => {
+      return res.status(404).send({
+          err: erre
+      })
+  })
+})
 };
 

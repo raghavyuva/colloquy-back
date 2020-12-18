@@ -12,7 +12,7 @@ module.exports = (app) => {
                 caption: req.body.caption,
                 photo: req.body.photo,
                 Title:req.body.Title,
-                postedBy: req.user._id
+                postedBy: req.user._id,
             })
             Event.save().then((data) => {
                 res.status(200).send(data);
@@ -84,5 +84,53 @@ module.exports = (app) => {
                     });
                 });
         }
+    })
+
+    app.put('/Event/like/:EventId', _protected, (req, res) => {
+        Events.findByIdAndUpdate(req.params.EventId, {
+            $push: { likes: req.user._id }
+        }, { new: true }).exec().then((pushed) => {
+            console.log(pushed);
+            res.status(200).send({   
+                message: "liked the Event"
+            })
+        }).catch((errb) => {
+            res.status(500).send({
+                message: "something went wrong while liking Event" || errb
+            })
+        })
+    })
+
+    app.put('/Event/unlike/:EventId', _protected, (req, res) => {
+       Events.findByIdAndUpdate(req.params.EventId, {
+            $pull: { likes: req.user._id }
+        }, { new: true }).exec().then((pulled) => {
+            console.log(pulled);
+            res.status(200).send({
+                message: "unliked the Event"
+            })
+        }).catch((errb) => {
+            res.status(500).send({
+                message: "something went wrong while unliking Event" || errb
+            })
+        })
+    })
+
+    app.put('/Event/comment/:PostsId', _protected, (req, res) => {
+        const comment = {
+            text: req.body.text,
+            postedBy: req.user._id
+        };
+        Events.findByIdAndUpdate(req.params.PostsId, {
+            $push: { comments: comment }
+        }, {
+            new: true
+        }).populate("comments.postedBy"," username userphoto text").populate("text")
+            .exec((err, result) => {
+                if (err) {
+                    return res.json({ error: err });
+                }
+                res.json(result);
+            })
     })
 }
