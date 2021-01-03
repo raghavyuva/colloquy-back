@@ -183,8 +183,8 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $push: { votes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
-            console.log(pushed);
-            res.status(200).send({
+            console.log('pushed');
+            res.status(200).send({ 
                 message: "voted the Post"
             })
         }).catch((errb) => {
