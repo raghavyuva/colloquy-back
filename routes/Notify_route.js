@@ -26,6 +26,7 @@ module.exports = (app) => {
             })
         }
     })
+   
     app.get('/savednotification', _protected, (req, res) => {
         Notify.find({ToUser:req.user._id}).populate("postedBy", "_id username userphoto notifytoken").populate("ToUser", "_id username userphoto notifytoken ").sort("-createdAt").then((data) => {
             res.send(data);

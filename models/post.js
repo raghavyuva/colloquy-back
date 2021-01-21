@@ -10,8 +10,7 @@ const PostSchema = mongoose.Schema({
         type: String,
     },
     photo: {
-        type: String,
-        default: "no photo"
+      type:String,
     },
     likes: [{
         type: ObjectId,

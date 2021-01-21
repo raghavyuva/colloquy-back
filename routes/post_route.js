@@ -2,6 +2,8 @@ const multer = require('multer');
 const Posts = require('../models/post');
 const _protected = require('../middleware/protected');
 const Notify = require('../models/Notify');
+var fs = require('fs');
+var path = require('path');
 const storage = multer.diskStorage({
     destination: ((req, res, cb) => {
         cb(null, './uploads');
@@ -12,7 +14,7 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 module.exports = (app) => {
-    app.post('/post', _protected, (req, res, file) => {
+    app.post('/post', _protected, upload.single('image'),(req, res, file) => {
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
@@ -20,7 +22,7 @@ module.exports = (app) => {
         }
         const post = new Posts({
             caption: req.body.caption,
-            photo: req.body.photo,
+            photo:req.file.path,
             postedBy: req.user._id
         })
         post.save()
@@ -193,9 +195,5 @@ module.exports = (app) => {
             })
         })
     })
-
-
-
-
 }
 

@@ -16,7 +16,8 @@ app.use(function (req, res, next) {
 const config = require('./config');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-
+var fs = require('fs');
+var path = require('path');
 require('./routes/auth')(app);
 require('./routes/post_route')(app);
 require('./routes/poll_route')(app);

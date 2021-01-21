@@ -1,5 +1,5 @@
 const Userauth = require("../models/user");
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const multer = require("multer");
 const jwt = require('jsonwebtoken');
 const config = require('../config');
@@ -721,7 +721,7 @@ margin-right: 0 !important;
   app.get('/user/:userId', _protected, (req, res) => {
     Userauth.findOne({ _id: req.params.userId }).select("-password")
       .then((user) => {
-        Posts.find({ postedBy: req.params.userId }).populate("postedBy", "_id username").populate("comments", "likes").sort("-createdAt").exec((err, userposts) => {
+        Posts.find({ postedBy: req.params.userId }).populate("postedBy", "_id username userphoto").populate("comments", "likes").sort("-createdAt").exec((err, userposts) => {
           if (err) {
             return res.status(500).send({
               message: "error retreiving posts by this user" || err
@@ -745,7 +745,7 @@ margin-right: 0 !important;
         return res.status(422).send({
           message: "something went wrong" || errorr
         })
-      }
+      }   
       Userauth.findByIdAndUpdate(req.user._id, {
         $push: { following: req.body.followid }
       }, { new: true }).then(data => {
@@ -762,7 +762,7 @@ margin-right: 0 !important;
     Userauth.findByIdAndUpdate(req.body.followid, {
       $pull: { followers: req.user._id }
     }, { new: true }, (errorr, result) => {
-      if (errorr) {
+      if (errorr) { 
         return res.status(422).send({
           message: "something went wrong" || errorr
         })
