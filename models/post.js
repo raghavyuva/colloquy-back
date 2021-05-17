@@ -23,7 +23,16 @@ const PostSchema = mongoose.Schema({
     comments: [{
         text: String,
         postedBy: { type: ObjectId, ref: 'Userauth' }
-    }]
+    }],
+    location:{
+        type:Array,
+    },
+    category: {
+        type:Array,
+    },
+    Tags:{
+        type:Array,
+    }
 }, {
     timestamps: true
 })

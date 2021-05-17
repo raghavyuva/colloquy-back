@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const PORT = 3000
+const PORT = 5000
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use('/uploads', express.static('uploads'));
-
+app.use('/upload/', express.static('upload'));
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
@@ -16,8 +15,6 @@ app.use(function (req, res, next) {
 const config = require('./config');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
-var fs = require('fs');
-var path = require('path');
 require('./routes/auth')(app);
 require('./routes/post_route')(app);
 require('./routes/poll_route')(app);

@@ -1,20 +1,22 @@
 const multer = require('multer');
 const Posts = require('../models/post');
 const _protected = require('../middleware/protected');
-const Notify = require('../models/Notify');
 var fs = require('fs');
-var path = require('path');
-const storage = multer.diskStorage({
-    destination: ((req, res, cb) => {
-        cb(null, './uploads');
-    }),
-    filename: ((req, file, cb) => {
-        cb(null, new Date().toISOString() + file.originalname)
-    })
+const path = require('path');
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'upload/')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '_' + Date.now()
+            + path.extname(file.originalname))
+
+    }
 })
-const upload = multer({ storage: storage })
+var upload = multer({ storage: storage })
 module.exports = (app) => {
-    app.post('/post', _protected, upload.single('image'),(req, res, file) => {
+    app.post('/post', _protected, upload.single('image'), (req, res, file) => {
+        console.log(req.file)
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
@@ -22,8 +24,11 @@ module.exports = (app) => {
         }
         const post = new Posts({
             caption: req.body.caption,
-            photo:req.file.path,
-            postedBy: req.user._id
+            photo: req.file.path,
+            postedBy: req.user._id,
+            location: req.body.location,
+            Tags: req.body.tags,
+            category: req.body.category
         })
         post.save()
             .then(data => {
@@ -65,7 +70,7 @@ module.exports = (app) => {
                 });
             });
     })
-    app.put('/post/update/:PostId', upload.single('photo'), _protected, (req, res) => {
+    app.put('/post/update/:PostId', _protected, (req, res) => {
         if (!req.body) {
             res.status(500).send({
                 message: "fields cannot be empty fill up your problem to update your posts"
@@ -74,7 +79,10 @@ module.exports = (app) => {
             Posts.findByIdAndUpdate(req.params.PostId, {
                 description: req.body.description,
                 caption: req.body.caption,
-                photo: req.file.path
+                photo: req.body.photo,
+                location: req.body.location,
+                Tags: req.body.tags,
+                category: req.body.category
             }, { new: true })
                 .then(post => {
                     if (!post) {
@@ -186,7 +194,7 @@ module.exports = (app) => {
             $push: { votes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
             console.log('pushed');
-            res.status(200).send({ 
+            res.status(200).send({
                 message: "voted the Post"
             })
         }).catch((errb) => {
