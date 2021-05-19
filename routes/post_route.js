@@ -1,22 +1,21 @@
 const multer = require('multer');
 const Posts = require('../models/post');
 const _protected = require('../middleware/protected');
-var fs = require('fs');
-const path = require('path');
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'upload/')
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.fieldname + '_' + Date.now()
-            + path.extname(file.originalname))
+// var fs = require('fs');
+// const path = require('path');
+// var storage = multer.diskStorage({
+// destination: function (req, file, cb) {
+//     cb(null, 'upload/')
+// },
+// filename: (req, file, cb) => {
+//     cb(null, file.fieldname + '_' + Date.now()
+//         + path.extname(file.originalname))
 
-    }
-})
-var upload = multer({ storage: storage })
+// }
+// })
+// var upload = multer({ storage: storage })
 module.exports = (app) => {
-    app.post('/post', _protected, upload.single('image'), (req, res, file) => {
-        console.log(req.file)
+     app.post('/post', _protected, (req, res, file) => {
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
@@ -24,7 +23,7 @@ module.exports = (app) => {
         }
         const post = new Posts({
             caption: req.body.caption,
-            photo: req.file.path,
+            photo: req.body.photo,
             postedBy: req.user._id,
             location: req.body.location,
             Tags: req.body.tags,
