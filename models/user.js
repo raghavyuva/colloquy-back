@@ -32,6 +32,10 @@ const UserdataSchema = mongoose.Schema({
         type: ObjectId,
         ref: "Userauth"
     }],
+    phoneNumber:{
+        type: String,
+        unique: true,
+    },
     tagline: String,
     notifytoken: String,
     verified:{

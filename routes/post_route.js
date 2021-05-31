@@ -42,7 +42,6 @@ module.exports = (app) => {
     app.get('/post', _protected, (req, res) => {
         Posts.find().populate("postedBy", "_id username userphoto notifytoken").populate("comments.postedBy", "_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {
             res.send(data);
-            console.log(data);
         }).catch((err) => {
             return res.status(500).send({
                 message: err.message || "Something wrong while recieving the postss."
@@ -166,7 +165,6 @@ module.exports = (app) => {
             .populate("comments.postedBy", "_id username userphoto")
             .sort("-createdAt").then((data) => {
                 res.send(data);
-                console.log(data);
             }).catch((err) => {
                 return res.status(500).send({
                     message: err.message || "Something wrong while recieving the postss."

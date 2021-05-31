@@ -543,7 +543,31 @@ module.exports = (app) => {
         });
     }
   })
-
+app.put('/updateuser/:userId',(req,res)=>{
+  Userauth.findByIdAndUpdate(req.params.userId, {
+      phoneNumber:req.body.number,
+      userphoto:req.body.userphoto,
+      verified:true
+  }, { new: true })
+    .then(data => {
+      if (!data) {
+        return res.status(404).send({
+          message: "user not found with id " + req.params.userId
+        });
+      }
+      res.send(data);
+      console.log(data)
+    }).catch(err => {
+      if (err.kind === 'ObjectId') {
+        return res.status(404).send({
+          message: "user not found with id " + req.params.userId
+        });
+      }
+      return res.status(500).send({
+        message: "Something wrong updating user with id " + req.params.userId
+      });
+    });
+})
   app.get('/allusers', _protected, (req, res) => {
     Userauth.find().then((data) => {
       res.send(data);

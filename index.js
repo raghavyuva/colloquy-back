@@ -1,7 +1,12 @@
 const express = require('express');
- const bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const PORT = 5000
 const app = express();
+// const server = require("http").createServer(app);
+// const io = require("socket.io")(server);
+// io.on("connection", socket => {
+//     console.log(' a user connected');
+// })
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 // app.use('/upload/', express.static('upload'));
