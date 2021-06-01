@@ -12,7 +12,7 @@ const UserdataSchema = mongoose.Schema({
     },
     userphoto: {
         type: String,
-        // required: true
+        default: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fthumb%2Fd%2Fd8%2FAntu_system-switch-user.svg%2F768px-Antu_system-switch-user.svg.png&f=1&nofb=1"
     },
     password: {
         type: String,
@@ -32,15 +32,15 @@ const UserdataSchema = mongoose.Schema({
         type: ObjectId,
         ref: "Userauth"
     }],
-    phoneNumber:{
+    phoneNumber: {
         type: String,
         unique: true,
     },
     tagline: String,
     notifytoken: String,
-    verified:{
-        type:Boolean,
-        default:false
+    verified: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
