@@ -32,7 +32,7 @@ module.exports = (app) => {
         post.save()
             .then(data => {
                 res.send(data);
-                console.log(data);
+                // console.log(data);
             }).catch(err => {
                 res.status(500).send({
                     message: err.message || "Something wrong while creating the posts."
@@ -106,7 +106,7 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $push: { likes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
-            console.log(pushed);
+            // console.log(pushed);
             res.status(200).send({
                 message: "liked the Post"
             })
@@ -121,7 +121,7 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $pull: { likes: req.user._id }
         }, { new: true }).exec().then((pulled) => {
-            console.log(pulled);
+            // console.log(pulled);
             res.status(200).send({
                 message: "unliked the Post"
             })
@@ -175,7 +175,7 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $pull: { votes: req.user._id }
         }, { new: true }).exec().then((pulled) => {
-            console.log(pulled);
+            // console.log(pulled);
             res.status(200).send({
                 message: "vote cancelled for the post"
             })
@@ -190,7 +190,7 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $push: { votes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
-            console.log('pushed');
+            // console.log('pushed');
             res.status(200).send({
                 message: "voted the Post"
             })

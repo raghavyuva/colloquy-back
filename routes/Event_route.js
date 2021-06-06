@@ -16,7 +16,7 @@ module.exports = (app) => {
             })
             Event.save().then((data) => {
                 res.status(200).send(data);
-                console.log(data);
+                // console.log(data);
             }).catch((errr) => {
                 return res.status(500).send({
                     message: "something went wrong while creating Event" || errr
@@ -27,7 +27,7 @@ module.exports = (app) => {
     app.get('/Event', _protected, (req, res) => {
         Events.find().populate("postedBy", "_id username userphoto").sort("-createdAt").then((data) => {
             res.send(data);
-            console.log(data);
+            // console.log(data);
         }).catch((err) => {
             return res.status(500).send({
                 message: err.message || "Something wrong while recieving the Events."
@@ -90,7 +90,7 @@ module.exports = (app) => {
         Events.findByIdAndUpdate(req.params.EventId, {
             $push: { likes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
-            console.log(pushed);
+            // console.log(pushed);
             res.status(200).send({   
                 message: "liked the Event"
             })
@@ -105,7 +105,7 @@ module.exports = (app) => {
        Events.findByIdAndUpdate(req.params.EventId, {
             $pull: { likes: req.user._id }
         }, { new: true }).exec().then((pulled) => {
-            console.log(pulled);
+            // console.log(pulled);
             res.status(200).send({
                 message: "unliked the Event"
             })

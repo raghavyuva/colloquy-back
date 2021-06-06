@@ -43,7 +43,7 @@ module.exports = (app) => {
     app.get('/report', _protected, (req, res) => {
         Reports.find().then((data) => {
             res.send(data);
-            console.log(data);
+            // console.log(data);
         }).catch((err) => {
             return res.status(500).send({
                 message: err.message || "Something wrong while recieving the tickets."

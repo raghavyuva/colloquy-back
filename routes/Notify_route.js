@@ -18,7 +18,7 @@ module.exports = (app) => {
             })
             Notification.save().then((data) => {
                 res.status(200).send(data);
-                console.log(data);
+                // console.log(data);
             }).catch((errr) => {
                 return res.status(500).send({
                     message: "something went wrong while creating Event" || errr
@@ -30,7 +30,7 @@ module.exports = (app) => {
     app.get('/savednotification', _protected, (req, res) => {
         Notify.find({ToUser:req.user._id}).populate("postedBy", "_id username userphoto notifytoken").populate("ToUser", "_id username userphoto notifytoken ").sort("-createdAt").then((data) => {
             res.send(data);
-            console.log(data);
+            // console.log(data);
         }).catch((err) => {
             return res.status(500).send({
                 message: err.message || "Something wrong while recieving the notifications."

@@ -41,7 +41,12 @@ const UserdataSchema = mongoose.Schema({
     verified: {
         type: Boolean,
         default: false
-    }
+    },
+    Online:{
+        type:Boolean,
+
+    },
+    
 }, {
     timestamps: true
 })
