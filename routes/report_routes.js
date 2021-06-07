@@ -1,32 +1,30 @@
-const multer = require('multer');
+// const multer = require('multer');
 const Reports = require('../models/report');
 const _protected = require('../middleware/protected');
 
-const storage = multer.diskStorage({
-    destination: ((req, res, cb) => {
-        cb(null, './uploads');
-    }),
-    filename: ((req, file, cb) => {
-        cb(null, new Date().toISOString() + file.originalname)
-    })
-})
+// const storage = multer.diskStorage({
+//     destination: ((req, res, cb) => {
+//         cb(null, './uploads');
+//     }),
+//     filename: ((req, file, cb) => {
+//         cb(null, new Date().toISOString() + file.originalname)
+//     })
+// })
 
 
-const upload = multer({ storage: storage })
+// const upload = multer({ storage: storage })
 
 module.exports = (app) => {
-    app.post('/report', upload.single('errscreenshot'), _protected, (req, res, file) => {
+    app.post('/report',  _protected, (req, res, file) => {
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
             });
         }
-        console.log(req.user);
+        // console.log(req.user);
         const report = new Reports({
-            problem: req.body.problem,
             description: req.body.description,
-            explaination: req.body.explaination,
-            errscreenshot: req.file.path,
+            errscreenshot: req.body.errscreenshot,
             reportedBy: req.user._id
         })
         report.save()
@@ -102,7 +100,7 @@ module.exports = (app) => {
     })
 
     //this is for the user to modify the report or his ticket
-    app.put('/report/update/:reportId', upload.single('errscreenshot'), _protected, (req, res) => {
+    app.put('/report/update/:reportId',  _protected, (req, res) => {
         if (!req.body) {
             res.status(500).send({
                 message: "fields cannot be empty fill up your problem to update your ticket"
@@ -111,7 +109,7 @@ module.exports = (app) => {
             Reports.findByIdAndUpdate(req.params.reportId, {
                 description: req.body.description,
                 explaination: req.body.explaination,
-                errscreenshot: req.file.path
+                errscreenshot: req.body.errscreenshot
             }, { new: true })
                 .then(report => {
                     if (!report) {
