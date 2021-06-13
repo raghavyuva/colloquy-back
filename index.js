@@ -25,6 +25,8 @@ require('./routes/poll_route')(app);
 require('./routes/report_routes')(app);
 require('./routes/Event_route')(app);
 require('./routes/Notify_route')(app);
+require('./routes/Faqs')(app);
+require('./routes/InterView')(app);
 mongoose.connect(config.url, {
     useNewUrlParser: true,
     useUnifiedTopology: true

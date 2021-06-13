@@ -30,7 +30,11 @@ const EventSchema = mongoose.Schema({
     }],
     EventDate:{
         type:String,
-        Date:new Date()
+        Date:new Date(),
+    },
+    EventLink:{
+        type:String,
+        required:true
     }
 }, {
     timestamps: true

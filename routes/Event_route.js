@@ -13,6 +13,7 @@ module.exports = (app) => {
                 photo: req.body.photo,
                 Title:req.body.Title,
                 postedBy: req.user._id,
+                EventLink:req.user.Link
             })
             Event.save().then((data) => {
                 res.status(200).send(data);
@@ -64,7 +65,8 @@ module.exports = (app) => {
                 caption: req.body.caption,
                 photo: req.body.photo,
                 Title:req.body.Title,
-                postedBy: req.user._id
+                postedBy: req.user._id,
+                EventLink:req.user.Link
             }, { new: true })
                 .then(Event => { 
                     if (!Event) {
