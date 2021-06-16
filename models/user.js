@@ -21,6 +21,7 @@ const UserdataSchema = mongoose.Schema({
     usn: {
         type: String,
         unique: true,
+        
     },
     resetToken: String,
     expireToken: Date,

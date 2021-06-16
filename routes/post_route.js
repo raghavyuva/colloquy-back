@@ -15,7 +15,7 @@ const _protected = require('../middleware/protected');
 // })
 // var upload = multer({ storage: storage })
 module.exports = (app) => {
-     app.post('/post', _protected, (req, res, file) => {
+    app.post('/post', _protected, (req, res, file) => {
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
@@ -106,99 +106,98 @@ module.exports = (app) => {
         Posts.findByIdAndUpdate(req.params.PostId, {
             $push: { likes: req.user._id }
         }, { new: true }).exec().then((pushed) => {
-            // console.log(pushed);
-            res.status(200).send({
-                message: "liked the Post"
-            })
-        }).catch((errb) => {
-            res.status(500).send({
-                message: "something went wrong while liking Post" || errb
-            })
-        })
-    })
-
-    app.put('/posts/unlike/:PostId', _protected, (req, res) => {
-        Posts.findByIdAndUpdate(req.params.PostId, {
-            $pull: { likes: req.user._id }
-        }, { new: true }).exec().then((pulled) => {
-            // console.log(pulled);
-            res.status(200).send({
-                message: "unliked the Post"
-            })
-        }).catch((errb) => {
-            res.status(500).send({
-                message: "something went wrong while unliking Post" || errb
-            })
-        })
-    })
-
-    app.put('/posts/comments/:PostsId', _protected, (req, res) => {
-        const comment = {
-            text: req.body.text,
-            postedBy: req.user._id
-        };
-        Posts.findByIdAndUpdate(req.params.PostsId, {
-            $push: { comments: comment }
-        }, {
-            new: true
-        }).populate("comments.postedBy", " username userphoto text").populate("text")
-            .exec((err, result) => {
-                if (err) {
-                    return res.json({ error: err });
-                }
-                res.json(result);
-            })
-    })
-    app.get('/myposts', _protected, (req, res) => {
-        Posts.find({ postedBy: req.user._id }).populate('postedBy', 'id username userphoto').sort("-createdAt")
-            .then((postres) => {
-                res.status(200).send(postres);
-            }).catch((errb) => {
-                return res.send(404).send({
-                    message: "nothing here"
-                })
-            })
-    })
-    app.get('/subscription', _protected, (req, res) => {
-        Posts.find({ postedBy: { $in: req.user.following } })
-            .populate("postedBy", "_id username userphoto")
-            .populate("comments.postedBy", "_id username userphoto")
-            .sort("-createdAt").then((data) => {
+            Posts.find().populate("postedBy", "_id username userphoto notifytoken").populate("comments.postedBy", "_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {
                 res.send(data);
-            }).catch((err) => {
-                return res.status(500).send({
-                    message: err.message || "Something wrong while recieving the postss."
+            })
+            }).catch((errb) => {
+                res.status(500).send({
+                    message: "something went wrong while liking Post" || errb
                 })
             })
-    })
-    app.put('/posts/votecancell/:PostId', _protected, (req, res) => {
-        Posts.findByIdAndUpdate(req.params.PostId, {
-            $pull: { votes: req.user._id }
-        }, { new: true }).exec().then((pulled) => {
-            // console.log(pulled);
-            res.status(200).send({
-                message: "vote cancelled for the post"
-            })
-        }).catch((errb) => {
-            res.status(500).send({
-                message: "something went wrong while voting Post" || errb
-            })
         })
-    })
 
-    app.put('/posts/vote/:PostId', _protected, (req, res) => {
-        Posts.findByIdAndUpdate(req.params.PostId, {
-            $push: { votes: req.user._id }
-        }, { new: true }).exec().then((pushed) => {
-            // console.log('pushed');
-            res.status(200).send({
-                message: "voted the Post"
-            })
-        }).catch((errb) => {
-            res.status(500).send({
-                message: "something went wrong while voting Post" || errb
+        app.put('/posts/unlike/:PostId', _protected, (req, res) => {
+            Posts.findByIdAndUpdate(req.params.PostId, {
+                $pull: { likes: req.user._id }
+            }, { new: true }).exec().then((pulled) => {
+                // console.log(pulled);
+                res.status(200).send({
+                    message: "unliked the Post"
+                })
+            }).catch((errb) => {
+                res.status(500).send({
+                    message: "something went wrong while unliking Post" || errb
+                })
             })
         })
-    })
-}
+
+        app.put('/posts/comments/:PostsId', _protected, (req, res) => {
+            const comment = {
+                text: req.body.text,
+                postedBy: req.user._id
+            };
+            Posts.findByIdAndUpdate(req.params.PostsId, {
+                $push: { comments: comment }
+            }, {
+                new: true
+            }).populate("comments.postedBy", " username userphoto text").populate("text")
+                .exec((err, result) => {
+                    if (err) {
+                        return res.json({ error: err });
+                    }
+                    res.json(result);
+                })
+        })
+        app.get('/myposts', _protected, (req, res) => {
+            Posts.find({ postedBy: req.user._id }).populate('postedBy', 'id username userphoto').sort("-createdAt")
+                .then((postres) => {
+                    res.status(200).send(postres);
+                }).catch((errb) => {
+                    return res.send(404).send({
+                        message: "nothing here"
+                    })
+                })
+        })
+        app.get('/subscription', _protected, (req, res) => {
+            Posts.find({ postedBy: { $in: req.user.following } })
+                .populate("postedBy", "_id username userphoto")
+                .populate("comments.postedBy", "_id username userphoto")
+                .sort("-createdAt").then((data) => {
+                    res.send(data);
+                }).catch((err) => {
+                    return res.status(500).send({
+                        message: err.message || "Something wrong while recieving the postss."
+                    })
+                })
+        })
+        app.put('/posts/votecancell/:PostId', _protected, (req, res) => {
+            Posts.findByIdAndUpdate(req.params.PostId, {
+                $pull: { votes: req.user._id }
+            }, { new: true }).exec().then((pulled) => {
+                // console.log(pulled);
+                res.status(200).send({
+                    message: "vote cancelled for the post"
+                })
+            }).catch((errb) => {
+                res.status(500).send({
+                    message: "something went wrong while voting Post" || errb
+                })
+            })
+        })
+
+        app.put('/posts/vote/:PostId', _protected, (req, res) => {
+            Posts.findByIdAndUpdate(req.params.PostId, {
+                $push: { votes: req.user._id }
+            }, { new: true }).exec().then((pushed) => {
+                // console.log('pushed');
+                res.status(200).send({
+                    message: "voted the Post"
+                })
+            }).catch((errb) => {
+                res.status(500).send({
+                    message: "something went wrong while voting Post" || errb
+                })
+            })
+        })
+    }
 
