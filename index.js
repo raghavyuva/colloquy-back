@@ -9,13 +9,7 @@ const app = express();
 // })
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-// app.use('/upload/', express.static('upload'));
-// app.use(function (req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, OPTIONS");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     next();
-// });
+
 const config = require('./config');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -28,6 +22,7 @@ require('./routes/Notify_route')(app);
 require('./routes/Faqs')(app);
 require('./routes/InterView')(app);
 require('./routes/Status_route')(app);
+require('./routes/Notes_route')(app);
 mongoose.connect(config.url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
@@ -37,9 +32,9 @@ mongoose.connect(config.url, {
     console.log('Could not connect to the database. Exiting now...', err);
     process.exit();
 });
-// app.get('/', (req, res) => {
-//     res.json({ "message": "Welcome" });
-// });
+app.get('/', (req, res) => {
+    res.json({ "message": "Welcome" });
+});
 app.listen(PORT, () => {
     console.log("Server is listening on port", PORT);
 });

@@ -8,17 +8,10 @@ const sendgridTransport = require('nodemailer-sendgrid-transport');
 const crypto = require('crypto');
 const _protected = require("../middleware/protected");
 const Posts = require("../models/post");
-{/*const storage = multer.diskStorage({
-    destination: ((req, res, cb) => {
-        cb(null, './profilepic');
-    }),
-    filename: ((req, file, cb) => {
-        cb(null, new Date().toISOString() + file.originalname)
-    })
-})
-
-const upload = multer({ storage: storage });
-*/}
+const Invoice = require("./Invoice");
+const stripe = require('stripe')('sk_test_51Hl55bIegwU8Nf3FJPWiFlqTMNN3hQ3xJQQr3saOIUNyaiEunPRz4xMFCdPxspWQ48NvZK0LxNbiNxTr10wD3EkI00oZTpc3jy');
+global.myvar;
+global.email;
 const transporter = nodemailer.createTransport(sendgridTransport({
   auth: {
     api_key: "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"
@@ -332,7 +325,7 @@ module.exports = (app) => {
         }
       })
   });
-  app.delete('/:userId', (req, res) => {
+  app.delete('/:userId', _protected, (req, res) => {
     Userauth.remove({ _id: req.params.userId }).exec().then((data) => {
       res.status(200).send({
         message: "user deleted successfully"
@@ -381,7 +374,7 @@ module.exports = (app) => {
     crypto.randomBytes(32, (err, buffer) => {
       if (err) {
         return res.status(500).send({
-        message: "error sending reset password link"
+          message: "error sending reset password link"
         })
       }
       const token = buffer.toString('hex')
@@ -1284,6 +1277,283 @@ module.exports = (app) => {
     }).catch(erre => {
       return res.status(404).send({
         err: erre
+      })
+    })
+  })
+  app.post('/payment-sheet', _protected, async (req, res) => {
+    const customer = await stripe.customers.create();
+    const ephemeralKey = await stripe.ephemeralKeys.create(
+      { customer: customer.id },
+      { apiVersion: '2020-08-27' }
+    );
+    const paymentInten = await stripe.paymentIntents.create({
+      amount: 1052,
+      currency: 'inr',
+      customer: customer.id,
+      receipt_email: req.body.metadata.email,
+      // metadata: req.body.metadata.user,
+      description: req.body.metadata.PackageName
+    });
+    const email = req.body.metadata.email;
+    global.email = email;
+    res.json({
+      paymentIntent: paymentInten.client_secret,
+      ephemeralKey: ephemeralKey.secret,
+      customer: customer.id,
+      extrainfo: paymentInten,
+      receipt_email: email
+    });
+
+  });
+
+  app.post('/webhook', (request, response) => {
+    const event = request.body;
+    // Handle the event
+    console.log(request.body)
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        console.log('PaymentIntent was successful!');
+        global.myvar = paymentIntent;
+        console.log(global.myvar);
+        response.json({ log: paymentIntent });
+        break;
+    }
+    // console.log(payment_suceed)
+    // response.send(payment_succeed);
+  });
+
+  app.post('/create-invoice', _protected, (req, res) => {
+    if (!req.body) {
+      return res.status(400).send({
+        message: "Please fill every fields"
+      });
+    }
+    const invoice = new Invoice({
+      paymentIntent: global.myvar,
+      issuedto: req.user._id
+    })
+    invoice.save()
+      .then(data => {
+        res.send(data);
+        transporter.sendMail({
+          to: global.email,
+          from: "raghav@orak.in",
+          subject: "Invoice Bill",
+          html: `
+              <!DOCTYPE html>
+<html> 
+	<head>
+		<meta charset="utf-8" />
+		<title>A simple, clean, and responsive HTML invoice template</title>
+
+		<style>
+			.invoice-box {
+				max-width: 800px;
+				margin: auto;
+				padding: 30px;
+				border: 1px solid #eee;
+				box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+				font-size: 16px;
+				line-height: 24px;
+				font-family: 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+				color: #555;
+			}
+
+			.invoice-box table {
+				width: 100%;
+				line-height: inherit;
+				text-align: left;
+			}
+
+			.invoice-box table td {
+				padding: 5px;
+				vertical-align: top;
+			}
+
+			.invoice-box table tr td:nth-child(2) {
+				text-align: right;
+			}
+
+			.invoice-box table tr.top table td {
+				padding-bottom: 20px;
+			}
+
+			.invoice-box table tr.top table td.title {
+				font-size: 45px;
+				line-height: 45px;
+				color: #333;
+			}
+
+			.invoice-box table tr.information table td {
+				padding-bottom: 40px;
+			}
+
+			.invoice-box table tr.heading td {
+				background: #eee;
+				border-bottom: 1px solid #ddd;
+				font-weight: bold;
+			}
+
+			.invoice-box table tr.details td {
+				padding-bottom: 20px;
+			}
+
+			.invoice-box table tr.item td {
+				border-bottom: 1px solid #eee;
+			}
+
+			.invoice-box table tr.item.last td {
+				border-bottom: none;
+			}
+
+			.invoice-box table tr.total td:nth-child(2) {
+				border-top: 2px solid #eee;
+				font-weight: bold;
+			}
+
+			@media only screen and (max-width: 600px) {
+				.invoice-box table tr.top table td {
+					width: 100%;
+					display: block;
+					text-align: center;
+				}
+
+				.invoice-box table tr.information table td {
+					width: 100%;
+					display: block;
+					text-align: center;
+				}
+			}
+
+			/** RTL **/
+			.invoice-box.rtl {
+				direction: rtl;
+				font-family: Tahoma, 'Helvetica Neue', 'Helvetica', Helvetica, Arial, sans-serif;
+			}
+
+			.invoice-box.rtl table {
+				text-align: right;
+			}
+
+			.invoice-box.rtl table tr td:nth-child(2) {
+				text-align: left;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="invoice-box">
+			<table cellpadding="0" cellspacing="0">
+				<tr class="top">
+					<td colspan="2">
+						<table>
+							<tr>
+								<td class="title">
+									<img src="https://www.sparksuite.com/images/logo.png" style="width: 100%; max-width: 300px" />
+								</td>
+
+								<td>
+									Invoice #: 123<br />
+									Created: January 1, 2015<br />
+									Due: February 1, 2015
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+
+				<tr class="information">
+					<td colspan="2">
+						<table>
+							<tr>
+								<td>
+									Sparksuite, Inc.<br />
+									12345 Sunny Road<br />
+									Sunnyville, CA 12345
+								</td>
+
+								<td>
+									Acme Corp.<br />
+									John Doe<br />
+									john@example.com
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+
+				<tr class="heading">
+					<td>Payment Method</td>
+
+					<td>Check #</td>
+				</tr>
+
+				<tr class="details">
+					<td>Check</td>
+
+					<td>1000</td>
+				</tr>
+
+				<tr class="heading">
+					<td>Item</td>
+
+					<td>Price</td>
+				</tr>
+
+				<tr class="item">
+					<td>Website design</td>
+
+					<td>$300.00</td>
+				</tr>
+
+				<tr class="item">
+					<td>Hosting (3 months)</td>
+
+					<td>$75.00</td>
+				</tr>
+
+				<tr class="item last">
+					<td>Domain name (1 year)</td>
+
+					<td>$10.00</td>
+				</tr>
+
+				<tr class="total">
+					<td></td>
+
+					<td>Total: $385.00</td>
+				</tr>
+			</table>
+		</div>
+	</body>
+</html>
+              `
+        }).then(r => {
+          res.status(200).send({
+            message: "check your email to get a token",
+          })
+        })
+      }).catch(err => {
+        console.log(err);
+        res.status(500).send({
+          message: err.message || "Something wrong while creating the invoice"
+        });
+      });
+  })
+
+  app.get('/retrieve-invoice', _protected, (req, res) => {
+    Invoice.find({ issuedto: req.user._id }).exec().then((data) => {
+      if (data.length < 1) {
+        return res.status(404).send({
+          message: " Nothing exists"
+        })
+      } else {
+        res.status(200).send({ data })
+      }
+    }).catch(e => {
+      res.status(500).send({
+        message: "sorry, unhandled error occured"
       })
     })
   })
