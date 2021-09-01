@@ -1,6 +1,21 @@
 const multer = require('multer');
 const Posts = require('../models/post');
 const _protected = require('../middleware/protected');
+const path = require("path");
+
+let storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, "uploads/"),
+    filename: (req, file, cb) => {
+      const uniqueName = `${Date.now()}-${Math.round(
+        Math.random() * 1e9
+      )}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    },
+  });
+  let upload = multer({ storage, limits: { fileSize: 10000 * 100 } }).single(
+    "myfile"
+  );
+
 module.exports = (app) => {
     app.post('/post', _protected, (req, res, file) => {
         if (!req.body) {
@@ -8,12 +23,13 @@ module.exports = (app) => {
                 message: "Please fill every fields"
             });
         }
-        const post = new Posts({
+        upload(req, res, async (err) => {
+
+          console.log(req.body); 
+       const post = new Posts({
             caption: req.body.caption,
-            photo: req.body.photo,
+            photo: req.file.path,
             postedBy: req.user._id,
-            location: req.body.location,
-            Tags: req.body.tags,
             category: req.body.category
         })
         post.save()
@@ -25,6 +41,7 @@ module.exports = (app) => {
                     message: err.message || "Something wrong while creating the posts."
                 });
             });
+        })
     });
     app.get('/post', _protected, (req, res) => {
         Posts.find().populate("postedBy", "_id username userphoto notifytoken").populate("comments.postedBy", "_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {

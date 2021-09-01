@@ -9,6 +9,7 @@ const crypto = require('crypto');
 const _protected = require("../middleware/protected");
 const Posts = require("../models/post");
 const Invoice = require("./Invoice");
+const path = require("path");
 const stripe = require('stripe')('sk_test_51Hl55bIegwU8Nf3FJPWiFlqTMNN3hQ3xJQQr3saOIUNyaiEunPRz4xMFCdPxspWQ48NvZK0LxNbiNxTr10wD3EkI00oZTpc3jy');
 global.myvar;
 global.email;
@@ -17,6 +18,18 @@ const transporter = nodemailer.createTransport(sendgridTransport({
     api_key: "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"
   }
 }))
+let storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+let upload = multer({ storage, limits: { fileSize: 10000 * 100 } }).single(
+  "myfile"
+);
 module.exports = (app) => {
   app.post('/signup', (req, res) => {
     Userauth.find({ email: req.body.email })
@@ -27,6 +40,7 @@ module.exports = (app) => {
           })
         } else {
           bcrypt.hash(req.body.password, 10, ((err, hash) => {
+            console.log(hash,err);
             if (err) {
               return res.status(400).send({
                 message: err
@@ -36,10 +50,11 @@ module.exports = (app) => {
                 email: req.body.email,
                 password: hash,
                 username: req.body.username,
-                age: req.body.age,
                 userphoto: req.body.userphoto
               })
+              console.log(User);
               User.save().then((data) => {
+                console.log(data)
                 const token = jwt.sign(
                   { email: data.email, id: data._id },
                   config.jwt_token,
@@ -1085,29 +1100,36 @@ module.exports = (app) => {
         message: "fields cannot be empty fill up your problem to update your ticket"
       })
     } else {
-      Userauth.findByIdAndUpdate(req.user._id, {
-        username: req.body.username,
-        tagline: req.body.tagline,
-        userphoto: req.body.userphoto
-      }, { new: true })
-        .then(data => {
-          if (!data) {
-            return res.status(404).send({
-              message: "user not found with id " + req.user._id
+      
+      upload(req, res, async (err) => {
+        console.log(req.file);
+        Userauth.findByIdAndUpdate(req.user._id, {
+          username: req.body.username,
+          tagline: req.body.tagline,
+          userphoto: req.file.path
+        }, { new: true })
+          .then(data => {
+            if (!data) {
+              return res.status(404).send({
+                message: "user not found with id " + req.user._id
+              });
+            }
+            res.send({
+              data:data,
+              path:`${__dirname}`
             });
-          }
-          res.send(data);
-          // console.log(data)
-        }).catch(err => {
-          if (err.kind === 'ObjectId') {
-            return res.status(404).send({
-              message: "user not found with id " + req.user._id
+            // console.log(data)
+          }).catch(err => {
+            if (err.kind === 'ObjectId') {
+              return res.status(404).send({
+                message: "user not found with id " + req.user._id
+              });
+            }
+            return res.status(500).send({
+              message: "Something wrong updating user with id " + req.user._id
             });
-          }
-          return res.status(500).send({
-            message: "Something wrong updating user with id " + req.user._id
           });
-        });
+      })
     }
   })
   app.put('/updateuser/:userId', (req, res) => {
@@ -1286,12 +1308,13 @@ module.exports = (app) => {
       { customer: customer.id },
       { apiVersion: '2020-08-27' }
     );
+
     const paymentInten = await stripe.paymentIntents.create({
       amount: 1052,
       currency: 'inr',
       customer: customer.id,
       receipt_email: req.body.metadata.email,
-      // metadata: req.body.metadata.user,
+      metadata: req.body.metadata.user,
       description: req.body.metadata.PackageName
     });
     const email = req.body.metadata.email;
@@ -1301,21 +1324,18 @@ module.exports = (app) => {
       ephemeralKey: ephemeralKey.secret,
       customer: customer.id,
       extrainfo: paymentInten,
-      receipt_email: email
+      receipt_email: email,
     });
-
   });
-
+  
   app.post('/webhook', (request, response) => {
     const event = request.body;
     // Handle the event
-    console.log(request.body)
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object;
         console.log('PaymentIntent was successful!');
         global.myvar = paymentIntent;
-        console.log(global.myvar);
         response.json({ log: paymentIntent });
         break;
     }
@@ -1329,6 +1349,7 @@ module.exports = (app) => {
         message: "Please fill every fields"
       });
     }
+    console.log(global.myvar);
     const invoice = new Invoice({
       paymentIntent: global.myvar,
       issuedto: req.user._id

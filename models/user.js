@@ -18,11 +18,6 @@ const UserdataSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    usn: {
-        type: String,
-        unique: true,
-        
-    },
     resetToken: String,
     expireToken: Date,
     followers: [{
@@ -35,7 +30,7 @@ const UserdataSchema = mongoose.Schema({
     }],
     phoneNumber: {
         type: String,
-        unique: true,
+        required:false,
     },
     tagline: String,
     notifytoken: String,
@@ -47,7 +42,6 @@ const UserdataSchema = mongoose.Schema({
         type:Boolean,
 
     },
-    
 }, {
     timestamps: true
 })

@@ -2,14 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const PORT = 5000
 const app = express();
-// const server = require("http").createServer(app);
-// const io = require("socket.io")(server);
-// io.on("connection", socket => {
-//     console.log(' a user connected');
-// })
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
+app.use(express.static('./uploads'))
+const url = 'mongodb://127.0.0.1:27017';
 const config = require('./config');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
@@ -23,11 +19,13 @@ require('./routes/Faqs')(app);
 require('./routes/InterView')(app);
 require('./routes/Status_route')(app);
 require('./routes/Notes_route')(app);
-mongoose.connect(config.url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
+mongoose.connect(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+            useFindAndModify: false,
+            useCreateIndex: true
 }).then(() => {
-    console.log("Successfully connected to the database");
+console.log("Successfully connected to the database");
 }).catch(err => {
     console.log('Could not connect to the database. Exiting now...', err);
     process.exit();
