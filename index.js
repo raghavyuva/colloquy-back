@@ -19,7 +19,7 @@ require('./routes/Faqs')(app);
 require('./routes/InterView')(app);
 require('./routes/Status_route')(app);
 require('./routes/Notes_route')(app);
-mongoose.connect(url, {
+mongoose.connect(config.url, {
             useNewUrlParser: true,
             useUnifiedTopology: true,
             useFindAndModify: false,

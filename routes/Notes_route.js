@@ -1,8 +1,23 @@
 const multer = require('multer');
 const _protected = require('../middleware/protected');
 const Notes = require('../models/Notes');
+const path = require("path");
+
+let storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(
+      Math.random() * 1e9
+    )}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  },
+});
+let upload = multer({ storage, limits: { fileSize: 10000 * 100 } }).single(
+  "myfile"
+);
 module.exports = (app) => {
     app.post('/upload_notes', _protected, (req, res, file) => {
+        upload(req, res, async (err) => {
         if (!req.body) {
             return res.status(400).send({
                 message: "Please fill every fields"
@@ -10,7 +25,7 @@ module.exports = (app) => {
         }
         const Note = new Notes({
             postedBy: req.user._id,
-            Url: req.body.notesurl,
+            Url: req.file.path,
             title: req.body.title,
             type: req.body.type,
             branch: req.body.branch,
@@ -25,6 +40,7 @@ module.exports = (app) => {
                     message: err.message || "Something wrong while creating the notes."
                 });
             });
+        })
     });
     app.get('/get_notes', _protected, (req, res) => {
         Notes.find().populate("postedBy", "_id username userphoto notifytoken").populate("Reviews.postedBy", "_id username userphoto notifytoken ").populate("text").sort("-createdAt").then((data) => {

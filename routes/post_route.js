@@ -28,7 +28,7 @@ module.exports = (app) => {
           console.log(req.body); 
        const post = new Posts({
             caption: req.body.caption,
-            photo: req.file.path,
+            photo: `https://vtyuva.com/${req.file.path.substring(8,req.file.path.length)}`,
             postedBy: req.user._id,
             category: req.body.category
         })
